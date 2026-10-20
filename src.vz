@@ -1,0 +1,17 @@
+/* Block comment */
+fn.i32 main() { // Single-line comment
+    vr.i32 x = 40;
+    vr.i32 y = $x + 2;
+    return $y;
+} // Return 42
+/* As an AST:
+Function main -> i32
+├── VarDecl i32 x
+│   └── IntLit 40
+├── VarDecl i32 y
+│   └── Binary +
+│       ├── Var x
+│       └── IntLit 2
+└── Return
+    └── Var y
+*/
