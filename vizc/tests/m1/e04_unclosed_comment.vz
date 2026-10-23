@@ -1,0 +1,5 @@
+// expect: error
+fn.i32 main() {
+    /* never closed
+    return 0;
+}

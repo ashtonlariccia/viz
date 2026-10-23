@@ -1,0 +1,4 @@
+// expect: 20
+fn.i32 main() {
+    return (2 + 3) * 4;
+}

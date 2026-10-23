@@ -1,0 +1,7 @@
+fn.i32 main() {
+    vr.i32 count = 40;
+    vr(im).u8 y;
+    $count += 2;
+    $count = $y;
+    return $count;
+}

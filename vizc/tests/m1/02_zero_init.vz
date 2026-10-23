@@ -1,0 +1,5 @@
+// expect: 0
+fn.i32 main() {
+    vr.i32 z;
+    return $z;
+}

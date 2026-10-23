@@ -1,0 +1,6 @@
+// expect: 42
+fn.i32 main() {
+    vr.i32 h = 0x20;
+    vr.i32 b = 0b1010;
+    return $h + $b;
+}

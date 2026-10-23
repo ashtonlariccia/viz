@@ -1,0 +1,3 @@
+// expect: error
+fn.i32 main() {
+    return 1;

@@ -1,0 +1,5 @@
+// expect: 7
+fn.i32 main() {
+    vr(im).i32 k = 7;
+    return $k;
+}

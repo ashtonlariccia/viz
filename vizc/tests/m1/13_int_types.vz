@@ -1,0 +1,13 @@
+// expect: 9
+// every int type should declare and emit cleanly (no mixing yet; that is M2)
+fn.i32 main() {
+    vr.i8  a = 1;
+    vr.i16 b = 2;
+    vr.i64 c = 3;
+    vr.u8  d = 4;
+    vr.u16 e = 5;
+    vr.u32 f = 6;
+    vr.u64 g = 7;
+    vr.uz  h = 8;
+    return 9;
+}

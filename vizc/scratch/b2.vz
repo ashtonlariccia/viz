@@ -1,0 +1,3 @@
+fn main() {
+    vr(mut).i32 z;
+}

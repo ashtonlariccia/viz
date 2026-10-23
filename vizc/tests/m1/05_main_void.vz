@@ -1,0 +1,6 @@
+// expect: 0
+// fn main() with no return type: vizc adds the silent "return 0;"
+fn main() {
+    vr.i32 x = 5;
+    $x += 1;
+}

@@ -1,0 +1,4 @@
+// expect: 42
+fn.i32 main() {
+    return 0b0010_1010;
+}

@@ -1,0 +1,6 @@
+// expect: 11
+fn.i32 main() {
+    vr.i32 x = 1;
+    $x = $x * 10 + 1;
+    return $x;
+}

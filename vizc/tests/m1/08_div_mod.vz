@@ -1,0 +1,5 @@
+// expect: 5
+// integer division truncates: 7 / 2 = 3, and 17 % 5 = 2
+fn.i32 main() {
+    return 7 / 2 + 17 % 5;
+}

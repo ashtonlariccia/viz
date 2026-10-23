@@ -1,0 +1,4 @@
+// expect: error
+fn.i32 main() {
+    return $nope;
+}

@@ -1,0 +1,19 @@
+/* Viz Syntax Example */
+load stdio("io"); // load the stdio module with the "io" specifier
+dec VGAOUT(0xB8000); // defines a constant for direct substitution
+
+ct CompoundType {
+    .ch[256] name;
+    .i32 id;
+}
+
+fn.i32 main() { // declare function, return type i32, main() entry point
+    io:println("Hello, World!"); // from the io module, call println
+    vr.i32 variable; // variable of type int32, mutable, 0 init
+    vr.i32 optout = uf; // undefined, opts out of 0 init for speed
+    vr(im).i32 immutable = 5; // immutable, must be defined explicitely
+    // numeric types for: u8-64, i8-64, f32-64
+    vr.ch char; // '' init, holds a single character
+    vr.ch[] string; // a string is an array of characters defined like this
+    vr.ch[10] fs_str; // initializes the string array to a predefined size
+}
