@@ -1,0 +1,123 @@
+// dec: compile-time constant. Name must be all caps.
+// Untyped value, substituted wherever the name is used (a value, not text like C's #define).
+// () mirrors the future `load` syntax for external modules.
+dec VGA(0xB8000);
+
+struct CompoundType { // must start capitalized (2nd letter must be lowercase)
+    // fields have no mutability of their own: a field is writable when the struct
+    // variable is mut, or when it's reached through a *mut pointer
+    (i32) field,
+    (str) name, // str is a placeholder, have not decided on strings yet
+}
+
+struct(pk) PackedStruct { // no padding
+    (u8) a, (u32) b,
+}
+
+fn(i32) f((mut, *i32) n) {
+    // var names must start lowercase
+    var(CompoundType) sa = { .field = 0, .name = "sa" }; // immutable variables need an initializer (an init block for structs)
+    var(mut, *CompoundType) psa = &sa; // reassignable, read-only pointee; &sa can only produce a read-only pointer
+    
+    var(mut, CompoundType) sb = { // mutable directly, and through *mut pointers
+        .field = 1, .name = "bob" // manual field registration within init block
+    };
+
+    var(mut, CompoundType) sc; // mut with no initializer: zero-filled
+    var(*mut CompoundType) psc = &sc; // fixed, writable pointee (allowed: sc is mut)
+    $sc.field = 1; // write directly. Assignment is a statement, not an expression: it has no value
+    (*psc).field = 2; // write through a pointer: *psc follows psc, then .field (needs a *mut pointee)
+    return 0;
+} 
+
+exec this_runs() { // entry point, one per program; write exec(!) if it never returns
+    var(i32) x = 5;
+    /* Pointer Rules:
+     * Two independent permissions:
+     *   mut in the slot -> the pointer variable can be reassigned ($p = &y)
+     *   mut after *     -> you can write through it (*p = 5)
+     *
+     *   var(*i32)          fixed,        read-only target
+     *   var(*mut i32)      fixed,        writable target (e.g. the VGA buffer)
+     *   var(mut, *i32)     reassignable, read-only target
+     *   var(mut, *mut i32) reassignable, writable target
+     *
+     * &x of an immutable x only gives a read-only pointer (*T).
+     * *mut T converts to *T automatically, never the reverse.
+     * Each * level has its own mut.
+     */
+    var(mut, *i32) px = &x; // slot order is fixed: traits first, then the type
+    var(*mut *[u16]) pvga = (*mut u16)VGA; // fixed but writable pointer; int -> pointer needs an explicit cast
+    /* Cast Rules:
+    *   Int <-> Int: narrowing keeps low bits, widening sign-extends signed src & 0-extends an unsigned one
+    *   Int <-> Ptr: allowed
+    *   Ptr <-> Ptr: allowed (including *T -> *mut T)
+    *   Structs/Arrays: never castable
+    *   Untyped constant (that does not fit cast target type): compile error
+    */
+    
+    var(i32) r = f($px); // local functions called directly
+    var(usize) uint64 = 1; // pointer-sized unsigned integer
+    var(isize) int64 = 2; // pointer-sized signed integer
+    
+    var([i32]) arr = {5, 6, 7}; // [T] without a length needs an initializer to infer it from (len 3)
+    var(mut, [i32, 3]) arr2; // init to i32[0, 0, 0]
+    var(mut, [i32, 3]) arr3 = undef; // init to i32[undef, undef, undef]
+    var([i32, 3]) arr4 = {1, 2}; // init to i32[1, 2, 0]
+    var([i32]) arr5 = {1, 2, 3, 4}; // init to i32[1, 2, 3, 4] (len 4)
+    
+    var(*[i32]) parr1 = &arr; // pointer to an array of i32 (bare address, no length)
+    var([*i32]) parr2 = {&x, &x}; // array of i32 pointers (len 2); read-only pointees, since x is immutable
+    
+    g();
+}
+
+fn g() {
+    var(i32) x = 5;
+    if ($x != 5) {
+        // do something
+    } else if ($x == 1) {
+        // do something else
+    } else {
+        // do another thing
+    }
+    
+    var(mut, i32) a = 0;
+    while ($a != 5) {
+        if ($a == 4) { break; }
+        $a += 1;
+        if ($a == 2) { continue; }
+        $a += 1;
+    }
+    unterm { // infinite loop
+        if ($a == 4) { break; }
+    }
+    var(mut, [i32, 4]) aa; // [0, 0, 0, 0]
+    for (usize i = 0, $i != 4, $i += 1) { // var decl like this is fine for loops, it's temporary (or we can use an existing var)
+        $aa[i] = (i32)$i + 1; // naked [i]
+    }
+}
+
+fn h() {
+    // Bitwise builtins (names tentative). Both operands must have the same integer
+    // type (no implicit conversions); the result has that type.
+    var(u8) flags = 0b00000101;
+    var(u8) mask = 0b00000100;
+    var(u8) both = @and($flags, $mask);       // 0b00000100
+    var(u8) either = @or($flags, 0b00001000); // 0b00001101
+    var(u8) diff = @xor($flags, $mask);       // 0b00000001
+    var(u8) inv = @not($flags);               // 0b11111010
+    var(u8) left = @shl($flags, 2);           // 0b00010100
+    var(u8) right = @shr($flags, 1);          // 0b00000010; on signed types, copies of the sign bit shift in
+    if (@and($flags, $mask) != 0) {           // test a flag
+        // flag is set
+    }
+
+    // @size: size in bytes, as a compile-time usize. Takes a type or a value;
+    // a value is not evaluated, only its type is used.
+    var(usize) s1 = @size(i32);          // 4
+    var(usize) s2 = @size($flags);       // 1
+    var(usize) s3 = @size(*i32);         // 8 on x86-64 (pointer-sized)
+    var(usize) s4 = @size([u16, 2000]);  // 4000: one 80x25 VGA text screen
+    var(usize) s5 = @size(PackedStruct); // 5: packed, no padding (unpacked it would be 8)
+}
