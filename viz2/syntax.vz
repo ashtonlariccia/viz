@@ -47,7 +47,7 @@ exec this_runs() { // entry point, one per program; write exec(!) if it never re
      * Each * level has its own mut.
      */
     var(mut, *i32) px = &x; // slot order is fixed: traits first, then the type
-    var(*mut *[u16]) pvga = (*mut u16)VGA; // fixed but writable pointer; int -> pointer needs an explicit cast
+    var(*mut [u16]) pvga = (*mut u16)VGA; // fixed but writable pointer; int -> pointer needs an explicit cast
     /* Cast Rules:
     *   Int <-> Int: narrowing keeps low bits, widening sign-extends signed src & 0-extends an unsigned one
     *   Int <-> Ptr: allowed
