@@ -1,0 +1,101 @@
+// imports are not covered in v1
+const io = @import("stdio"); // @ symbolizes a builtin function
+const print = io.Stdout.println; // creating a shorthand for println()
+
+fn stdout(x: i32) -> i32 { // param: x of type i32, returns i32
+    if (x <= 5) { println("x ({x}) not large enough"); return 1; }
+    else {
+        for (i, 0..x) { // ranged for loops; 0..=x for inclusivity (for value (number) in range)
+        // inner variables (`i`) can shadow outer variables
+            println(i); // note that println is a high level function & not in v1
+        }
+        return 0;
+    }
+}
+
+struct Point { // name must start capitalized
+    x: const i32, // immutable i32
+    y: i32, // mutable i32
+    z: i32 = undef, // mutable, opts out of default init
+}
+
+run main() -> void { // 'main' can be anything, 'run' defines program entry
+    // this function actively returns void unless otherwise specified (verbosity not necessary)
+    // 'var' defines a mutable variable
+    var s1 = Point { x: 5, y: 2, z: 4 }; // x must be initialized
+    var s2: Point = Point { x: 3 }; // valid, y will default init & z to undef
+    
+    println("{s2.x}"); // example of field access
+    var s2p: *Point = &s1; // a pointer to the s1 struct
+    println("{s2p.*x}"); // example of dereferencing a field
+    
+    var x = 5;
+    var y = if (x == 5) 1 else 2; // conditional assignment is allowed
+    { // inner block as a 'confined scope' that is freed when the block closes
+        var x = 2; // inner block shadowing is allowed
+    } // variable shadowing is not permitted outside of an inner block
+
+    stdout(10); // return values can be ignored
+    
+    loops(); // forward declaration is not necessary, as functions can be declared below run
+    casting();
+    arrays_strings();
+    
+    var float: f64 = 1.5e3; // this is valid syntax for floats along with traditional values
+    var inf = 1.0 / 0.0; // IEEE arithmetic, C-style
+    var nan = 0.0 / 0.0;
+}
+
+fn loops() {
+    var n: i32; // while loop appendix shorthand vars must be predeclared, as condition uses it
+    while (n <= 10) => (n += 1) { // optionally add an appendix that defines the incrementation
+    // loops can also append multiple vars ex: `n += 1, k *= 2`
+        if (n == 2) { continue; }
+        else if (n == 9) { break; }
+    }
+
+    // a shorthand for declaring a temporary variable called i for the incrementation | unterm loops never end
+    unterm => (var i += 1) { // shorthand for defining a throw variable (usize, init to 0) for the loop
+        // loops that never end can also be given an incrementation for every time it begins again
+        if (i == 9) { break; } // same outcome as the above while loop
+    }
+}
+
+fn casting() { var i: u8 = 5; var n: i32 = @cast(i32, i); } // cast builtins (more coming soon)
+// no implicit int -> float conversion yet
+
+fn arrays_strings() {
+    var arr1: [i32, 3]; // type definition: [type, size]; size is in elements
+    // 0 init; = 5 would init all to 5; = {5} would set value 1 to 5; = {1, 2, 3} would set idx 0..2
+    for (i, 0..@len(arr1)) { println("{arr1[i]}"); } // indices are all usize
+    var arr2: [i32, _] = { 1, 2, 3 }; // compiler will count it, but it cannot grow beyond its predefined number of units
+    
+    var sr = slicing();
+}
+
+fn slicing() -> u8 {
+// NOTE: lambda functions are not in viz v1, this is a tentative model that will be implemented later
+    // option 1 for 'lambda' functions (basically just small functions defined for in-scope use only)
+    lambda sum(xs: [const i32]) -> i32 {
+        var total: i32;
+        for (i, 0..@len(xs)) { total += xs[i]; }
+        return total;
+    }
+    // syntax option 2 for lambda (no return, but -> would go after <- () `->`)
+    const fill = lambda <- (dst: [u8], value: u8) { for (i, 0..@len(dst)) { dst[i] = value; } };
+    
+    var nums: [i32, _] = { 4, 8, 15, 16, 23, 42 }; // compiler counts _ = 6
+    
+    var a = sum(nums[..]); // .. = whole array -> 108
+    var b = sum(nums[1..3]); // 8 + 15 -> 23
+    var c = sum(nums[2..=4]); // 15 + 16 + 23 -> 54
+
+    var buf: [u8, 256] = undef;
+    var used: usize = 5;
+    fill(buf[0..used], 65); // Writes 'A' into buf[0..4]
+    
+    const msg: [const u8] = "hello"; // read-only slice (string literal)
+    
+    return @cast(u8, b);
+    // lambda functions go out of scope
+}
